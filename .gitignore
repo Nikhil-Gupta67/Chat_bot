@@ -1,0 +1,69 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual environments
+venv/
+.venv/
+ENV/
+env/
+
+# Django stuff:
+*.log
+*.pot
+*.pyc
+db.sqlite3
+media/
+
+# IDEs and editors
+.vscode/
+*.sublime-project
+*.sublime-workspace
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Distribution / packaging
+*.egg-info/
+build/
+dist/
+
+# Pytest
+.cache/
+
+temp/
+
+# node modules (if any)
+node_modules/
+
+# static files
+staticfiles/
+
+# Local settings
+local_settings.py
+
+# Coverage
+htmlcov/
+.coverage
+
+# Mac
+*.DS_Store
+
+# Windows
+Thumbs.db
+
+# logs
+logs/
+
+# database
+*.sqlite3
+
+# env files
+*.env
+
+# pyenv
+.python-version
