@@ -1,0 +1,83 @@
+/* General page styling */
+body {
+    font-family: Arial, sans-serif;
+    background: #f4f6f9;
+    display: flex;
+    /* Enable flexbox */
+    justify-content: center;
+    /* Center horizontally */
+    align-items: center;
+    /* Center vertically */
+    height: 100vh;
+    /* Full viewport height */
+    margin: 0;
+}
+
+/* Chatbot container */
+.chatbot {
+    display: flex;
+    flex-direction: column;
+    /* Stack messages and input vertically */
+    background: #ffffff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    width: 350px;
+    padding: 15px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Chatbot messages */
+.chatbot-message {
+    display: flex;
+    justify-content: center;
+    background: #e1f5fe;
+    padding: 10px;
+    border-radius: 6px;
+    margin-bottom: 10px;
+    color: #333;
+    font-size: 14px;
+}
+
+/* User input container */
+#userInput {
+    display: flex;
+    justify-content: center;
+    /* Centers input + button */
+    margin-top: 15px;
+    width: 100%;
+}
+
+/* Input box styling */
+#userMessage {
+    flex: 1;
+    /* Makes input expand */
+    padding: 12px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    box-sizing: border-box;
+}
+
+/* Send button styling */
+#sendButton {
+    margin-left: 8px;
+    padding: 10px 15px;
+    background: #0078d7;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.3s ease;
+}
+
+#sendButton:hover {
+    background: #005a9e;
+}
+
+/* Heading */
+h2 {
+    text-align: center;
+    color: #0078d7;
+    margin-bottom: 10px;
+}
