@@ -12,7 +12,6 @@ body {
     /* Full viewport height */
     margin: 0;
 }
-
 /* Chatbot container */
 .chatbot {
     display: flex;
