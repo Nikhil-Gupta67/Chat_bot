@@ -22,6 +22,21 @@
         <button id="sendButton">Send</button>
       </div>
     </div>
-    
+    <script>
+      function getUserResponse(){
+        var userMessage = $('#userMessage').val();
+        var userHtml = '<p class="user-message"><span>' + userMessage + '</span></p>';   // It is used to Display by the user type...
+        $('#userMessage').val('');  // It is used to clear the input field after
+        $('.chatbot').append(userHtml);
+      }
+$('#sendButton').click(function() {
+        getUserResponse();
+      });
+      $('#userMessage').keypress(function(e) {
+        if (e.which == 13) { // Check if the Enter key is pressed
+          getUserResponse();
+        }
+      });
+    </script>
   </body>
 </html>
