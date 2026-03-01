@@ -1,7 +1,7 @@
 /* General page styling */
 body {
     font-family: Arial, sans-serif;
-    background: #f4f6f9;
+    background-color: #eb9d4e;
     display: flex;
     /* Enable flexbox */
     justify-content: center;
@@ -73,4 +73,11 @@ h2 {
     text-align: center;
     color: #0078d7;
     margin-bottom: 10px;
+}
+.user-message{
+    text-align: right;
+    font-family:monospace;
+    font-size: 14px;
+    line-height: 25px;
+    color:rgb(243, 75, 4);
 }
