@@ -12,3 +12,6 @@ def article_detail(request, article_id):
 
 def index(request):
     return render(request, 'index.html')
+
+def get_response(request):
+    return HttpResponse("This is the response from the get_response view.")
