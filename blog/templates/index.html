@@ -3,7 +3,11 @@
     <title>My Blog</title>
     {% load static %}
     <link rel="stylesheet" type="text/css" href="{% static 'style.css' %}" />
-    <script src="https://code.jquery.com/jquery-4.0.0.js" integrity="sha256-9fsHeVnKBvqh3FB2HYu7g2xseAZ5MlN6Kz/qnkASV8U=" crossorigin="anonymous">
+    <script
+      src="https://code.jquery.com/jquery-4.0.0.js"
+      integrity="sha256-9fsHeVnKBvqh3FB2HYu7g2xseAZ5MlN6Kz/qnkASV8U="
+      crossorigin="anonymous"
+    >
       // To get the text from the input field we are using here JQuery
     </script>
   </head>
@@ -23,17 +27,27 @@
       </div>
     </div>
     <script>
-      function getUserResponse(){
-        var userMessage = $('#userMessage').val();
-        var userHtml = '<p class="user-message"><span>' + userMessage + '</span></p>';   // It is used to Display by the user type...
-        $('#userMessage').val('');  // It is used to clear the input field after
-        $('.chatbot').append(userHtml);
+      function getUserResponse() {
+        var userMessage = $("#userMessage").val();
+        var userHtml =
+          '<p class="user-message"><span>' + userMessage + "</span></p>"; // It is used to Display by the user type...
+        $("#userMessage").val(""); // It is used to clear the input field after
+        $(".chatbot").append(userHtml);
+        // SENDING THE DATA TO THE BACKEND..
+        $.get("/get_response/", { userMessage: userMessage }).done(
+          function (data) {
+            var botHtml =
+              '<p class="chatbot-message"><span>' + data + "</span></p>";
+            $(".chatbot").append(botHtml);
+          },
+        );
       }
-$('#sendButton').click(function() {
+      $("#sendButton").click(function () {
         getUserResponse();
       });
-      $('#userMessage').keypress(function(e) {
-        if (e.which == 13) { // Check if the Enter key is pressed
+      $("#userMessage").keypress(function (e) {
+        if (e.which == 13) {
+          // Check if the Enter key is pressed
           getUserResponse();
         }
       });
