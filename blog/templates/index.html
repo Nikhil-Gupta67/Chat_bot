@@ -29,15 +29,14 @@
     <script>
       function getUserResponse() {
         var userMessage = $("#userMessage").val();
-        var userHtml="<p class='userText'>User: <span>" + userMessage + "</span></p>";
-          '<p class="user-message"><span>' + userMessage + "</span></p>"; // It is used to Display by the user type...
+        var userHtml='<p class="user-message"><span>' + userMessage + "</span></p>"; // It is used to Display by the user type...
         $("#userMessage").val(""); // It is used to clear the input field after
         $(".chatbot").append(userHtml);
         // SENDING THE DATA TO THE BACKEND..
-        $.get("/get_response/", { userMessage: userMessage }).done(
-          function (data) {
+        $.get("/get_response/", { userMessage: userMessage }).done(  
+          function (data) {    //Ti will receive the data from the backend and display it in the chatbot...
             var botHtml =
-              '<p class="chatbot-message"><span>' + data + "</span></p>";
+              '<p class="chatbot-message">Chatbot:<span>' + data + "</span></p>";
             $(".chatbot").append(botHtml);
           },
         );
