@@ -12,7 +12,7 @@ def index(request):
     return render(request, 'index.html')
 
 def get_response(request):
-    name = request.GET.get('name', 'Guest')  # Get the 'name' parameter from the query string, default to 'Guest' if not provided
-    return HttpResponse(f"Hello, {name}! This is a response from the get_response view.")
+    name = request.GET.get('name')  # Get the 'name' parameter from the query string, default to 'Guest' if not provided
+    return HttpResponse( name)
 
 
