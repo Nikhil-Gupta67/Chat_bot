@@ -23,11 +23,13 @@ body {
     width: 350px;
     padding: 15px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    max-height: 400px;
+    overflow-y: auto;
 }
 /* Chatbot messages */
 .chatbot-message {
     display: flex;
-    justify-content: center;
+    justify-content: flex-start;
     background: #e1f5fe;
     padding: 10px;
     border-radius: 6px;
@@ -80,4 +82,8 @@ h2 {
     font-size: 14px;
     line-height: 25px;
     color:rgb(243, 75, 4);
+    background: #fff3cd;
+    padding: 10px;
+    border-radius: 6px;
+    margin-bottom: 10px;
 }
