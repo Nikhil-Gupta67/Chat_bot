@@ -1,59 +1,352 @@
 <html>
   <head>
-    <title>Chatbot</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Chatbot</title>
     {% load static %}
     <link rel="stylesheet" type="text/css" href="{% static 'style.css' %}" />
     <script
-      src="https://code.jquery.com/jquery-4.0.0.js"
-      integrity="sha256-9fsHeVnKBvqh3FB2HYu7g2xseAZ5MlN6Kz/qnkASV8U="
+      src="https://code.jquery.com/jquery-3.7.1.js"
+      integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QQnxLEwzNU="
       crossorigin="anonymous"
-    >
-      // To get the text from the input field we are using here JQuery
-    </script>
+    ></script>
   </head>
   <body>
-    <h2>Chatbot APP</h2>
-    <div>
-      <div class="chatbot">
-        <p class="chatbot-message"><span>Hey there...</span></p>
+    <div class="chat-container">
+      <div class="chat-header">
+        <h2>🤖 AI Chatbot Assistant</h2>
+        <div class="header-actions">
+          <button id="clearBtn" class="btn-action" title="Clear Chat">
+            <span>🗑️ Clear</span>
+          </button>
+          <button id="historyBtn" class="btn-action" title="View History">
+            <span>📋 History</span>
+          </button>
+          <button id="statsBtn" class="btn-action" title="Show Statistics">
+            <span>📊 Stats</span>
+          </button>
+        </div>
       </div>
-      <div id="userInput">
+
+      <div class="chat-messages" id="chatMessages">
+        <div class="welcome-message">
+          <p>👋 Welcome! I'm your AI assistant. I can help you with:</p>
+          <ul>
+            <li>📝 Answer general questions</li>
+            <li>🕐 Tell you the current time</li>
+            <li>ℹ️ Provide information about Django</li>
+            <li>💬 Have friendly conversations</li>
+          </ul>
+          <p>Feel free to ask me anything or type "help" for more options!</p>
+        </div>
+      </div>
+
+      <div class="chat-input-area">
         <input
           type="text"
           id="userMessage"
-          placeholder="Type your message here..."
+          class="chat-input"
+          placeholder="Type your message here... (Press Enter to send)"
+          autocomplete="off"
         />
-        <button id="sendButton">Send</button>
+        <button id="sendButton" class="btn-send">Send</button>
+      </div>
+
+      <div class="chat-info">
+        <span id="statusIndicator" class="status-ready">Ready</span>
       </div>
     </div>
+
+    <!-- Modal for history -->
+    <div id="historyModal" class="modal">
+      <div class="modal-content">
+        <span class="close">&times;</span>
+        <h3>Conversation History</h3>
+        <div id="historyContent" class="history-content">Loading...</div>
+      </div>
+    </div>
+
+    <!-- Modal for statistics -->
+    <div id="statsModal" class="modal">
+      <div class="modal-content">
+        <span class="close">&times;</span>
+        <h3>Chat Statistics</h3>
+        <div id="statsContent" class="stats-content">Loading...</div>
+      </div>
+    </div>
+
+    <!-- Modal for feedback -->
+    <div id="feedbackModal" class="modal">
+      <div class="modal-content">
+        <span class="close">&times;</span>
+        <h3>Send Feedback</h3>
+        <form id="feedbackForm">
+          <div class="feedback-rating">
+            <label>How helpful was this response?</label>
+            <div class="rating-stars">
+              <input type="radio" name="rating" value="5" id="rating5" />
+              <label for="rating5">⭐⭐⭐⭐⭐</label>
+              <input type="radio" name="rating" value="4" id="rating4" />
+              <label for="rating4">⭐⭐⭐⭐</label>
+              <input
+                type="radio"
+                name="rating"
+                value="3"
+                id="rating3"
+                checked
+              />
+              <label for="rating3">⭐⭐⭐</label>
+              <input type="radio" name="rating" value="2" id="rating2" />
+              <label for="rating2">⭐⭐</label>
+              <input type="radio" name="rating" value="1" id="rating1" />
+              <label for="rating1">⭐</label>
+            </div>
+          </div>
+          <textarea
+            id="feedbackComment"
+            placeholder="Optional: Share your thoughts..."
+            rows="3"
+          ></textarea>
+          <button type="button" id="submitFeedback" class="btn-action">
+            Submit Feedback
+          </button>
+        </form>
+      </div>
+    </div>
+
     <script>
-      function getUserResponse() {
-        var userMessage = $("#userMessage").val();
-        var userHtml =
-          '<p class="user-message"><span>' + userMessage + "</span></p>"; // It is used to Display by the user type...
-        $("#userMessage").val(""); // It is used to clear the input field after
-        $(".chatbot").append(userHtml);
-        // SENDING THE DATA TO THE BACKEND..
-        $.get("/get_response/", { userMessage: userMessage }).done(
-          function (data) {
-            //Ti will receive the data from the backend and display it in the chatbot...
-            var botHtml =
-              '<p class="chatbot-message">Chatbot:<span>' +
-              data +
-              "</span></p>";
-            $(".chatbot").append(botHtml);
-          },
-        );
-      }
-      $("#sendButton").click(function () {
-        getUserResponse();
+      // Initialize
+      let currentMessageId = null;
+      const chatMessages = document.getElementById("chatMessages");
+      const statusIndicator = document.getElementById("statusIndicator");
+
+      // Get modals
+      const historyModal = document.getElementById("historyModal");
+      const statsModal = document.getElementById("statsModal");
+      const feedbackModal = document.getElementById("feedbackModal");
+      const closeButtons = document.querySelectorAll(".close");
+
+      // Close modals
+      closeButtons.forEach((btn) => {
+        btn.onclick = function () {
+          this.parentElement.parentElement.style.display = "none";
+        };
       });
-      $("#userMessage").keypress(function (e) {
-        if (e.which == 13) {
-          // Check if the Enter key is pressed
+
+      window.onclick = function (event) {
+        if (event.target.classList.contains("modal")) {
+          event.target.style.display = "none";
+        }
+      };
+
+      // Clear chat
+      document.getElementById("clearBtn").onclick = function () {
+        if (confirm("Clear all messages? This cannot be undone.")) {
+          chatMessages.innerHTML =
+            '<div class="welcome-message"><p>Chat cleared. Start a new conversation!</p></div>';
+        }
+      };
+
+      // Load history
+      document.getElementById("historyBtn").onclick = function () {
+        loadHistory();
+        historyModal.style.display = "block";
+      };
+
+      // Load statistics
+      document.getElementById("statsBtn").onclick = function () {
+        loadStatistics();
+        statsModal.style.display = "block";
+      };
+
+      // Main chat function
+      function getUserResponse() {
+        const userMessage = document.getElementById("userMessage").value.trim();
+        if (!userMessage) return;
+
+        // Show user message
+        const userHtml =
+          '<div class="message user-message"><div class="message-content">' +
+          escapeHtml(userMessage) +
+          '</div><span class="timestamp">' +
+          getCurrentTime() +
+          "</span></div>";
+        chatMessages.appendChild(createElement(userHtml));
+        document.getElementById("userMessage").value = "";
+
+        // Show loading state
+        statusIndicator.textContent = "Processing...";
+        statusIndicator.classList.remove("status-ready");
+
+        // Send to server
+        $.ajax({
+          url: "/get_response/",
+          type: "POST",
+          contentType: "application/json",
+          data: JSON.stringify({ userMessage: userMessage }),
+          success: function (response) {
+            if (response.success) {
+              currentMessageId = response.message_id;
+              const botHtml =
+                '<div class="message bot-message"><div class="message-content">' +
+                escapeHtml(response.message) +
+                '</div><div class="message-meta">' +
+                '<span class="confidence">Confidence: ' +
+                Math.round(response.confidence * 100) +
+                "%</span>" +
+                '<button class="btn-feedback" onclick="showFeedback(' +
+                response.message_id +
+                ')">👍</button>' +
+                '</div><span class="timestamp">' +
+                getCurrentTime() +
+                "</span></div>";
+              chatMessages.appendChild(createElement(botHtml));
+            }
+            statusIndicator.textContent = "Ready";
+            statusIndicator.classList.add("status-ready");
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+          },
+          error: function (xhr) {
+            const errorMsg =
+              '<div class="message error-message"><div class="message-content">Error: Unable to get response. Please try again.</div></div>';
+            chatMessages.appendChild(createElement(errorMsg));
+            statusIndicator.textContent = "Error";
+            statusIndicator.classList.remove("status-ready");
+          },
+        });
+      }
+
+      function loadHistory() {
+        $.ajax({
+          url: "/api/history/",
+          type: "GET",
+          success: function (data) {
+            if (data.success) {
+              let html =
+                '<p class="history-info">Total messages: ' +
+                data.message_count +
+                '</p><div class="history-list">';
+              if (data.messages.length === 0) {
+                html += "<p>No messages yet</p>";
+              } else {
+                data.messages.forEach((msg) => {
+                  html +=
+                    '<div class="history-item">' +
+                    "<strong>You:</strong> " +
+                    escapeHtml(msg.user_message.substring(0, 50)) +
+                    "...<br>" +
+                    "<strong>Bot:</strong> " +
+                    escapeHtml(msg.bot_response.substring(0, 50)) +
+                    "...<br>" +
+                    "<small>" +
+                    new Date(msg.timestamp).toLocaleString() +
+                    "</small>" +
+                    "</div>";
+                });
+              }
+              html += "</div>";
+              document.getElementById("historyContent").innerHTML = html;
+            }
+          },
+        });
+      }
+
+      function loadStatistics() {
+        $.ajax({
+          url: "/api/statistics/",
+          type: "GET",
+          success: function (data) {
+            if (data.success) {
+              const html =
+                '<div class="stats-grid">' +
+                '<div class="stat-item"><strong>Total Messages</strong><br>' +
+                data.total_messages +
+                "</div>" +
+                '<div class="stat-item"><strong>Avg Confidence</strong><br>' +
+                Math.round(data.avg_confidence * 100) +
+                "%</div>" +
+                '<div class="stat-item"><strong>Feedback Count</strong><br>' +
+                data.feedback_count +
+                "</div>" +
+                '<div class="stat-item"><strong>Avg Rating</strong><br>' +
+                data.avg_rating.toFixed(1) +
+                "/5 ⭐</div>" +
+                "</div>";
+              document.getElementById("statsContent").innerHTML = html;
+            }
+          },
+        });
+      }
+
+      function showFeedback(messageId) {
+        currentMessageId = messageId;
+        feedbackModal.style.display = "block";
+      }
+
+      document.getElementById("submitFeedback").onclick = function () {
+        const rating = document.querySelector(
+          'input[name="rating"]:checked',
+        ).value;
+        const comment = document.getElementById("feedbackComment").value;
+
+        $.ajax({
+          url: "/api/feedback/",
+          type: "POST",
+          contentType: "application/json",
+          data: JSON.stringify({
+            message_id: currentMessageId,
+            rating: parseInt(rating),
+            comment: comment,
+          }),
+          success: function (response) {
+            if (response.success) {
+              alert("Thank you for your feedback!");
+              feedbackModal.style.display = "none";
+              document.getElementById("feedbackForm").reset();
+            }
+          },
+        });
+      };
+
+      // Event listeners
+      document.getElementById("sendButton").onclick = getUserResponse;
+      document.getElementById("userMessage").onkeypress = function (e) {
+        if (e.which === 13) {
+          // Enter key
           getUserResponse();
         }
-      });
+      };
+
+      // Helper functions
+      function escapeHtml(text) {
+        const map = {
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          '"': "&quot;",
+          "'": "&#039;",
+        };
+        return text.replace(/[&<>"']/g, (m) => map[m]);
+      }
+
+      function getCurrentTime() {
+        const now = new Date();
+        return now.toLocaleTimeString("en-US", {
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+      }
+
+      function createElement(html) {
+        const div = document.createElement("div");
+        div.innerHTML = html;
+        return div.firstChild;
+      }
+
+      // Focus input on load
+      window.onload = function () {
+        document.getElementById("userMessage").focus();
+      };
     </script>
   </body>
 </html>
