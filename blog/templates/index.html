@@ -5,11 +5,7 @@
     <title>AI Chatbot</title>
     {% load static %}
     <link rel="stylesheet" type="text/css" href="{% static 'style.css' %}" />
-    <script
-      src="https://code.jquery.com/jquery-3.7.1.js"
-      integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QQnxLEwzNU="
-      crossorigin="anonymous"
-    ></script>
+    <!-- Use native fetch; removed jQuery dependency for robustness -->
   </head>
   <body>
     <div class="chat-container">
@@ -120,48 +116,45 @@
       const chatMessages = document.getElementById("chatMessages");
       const statusIndicator = document.getElementById("statusIndicator");
 
-      // Get modals
+      // Get modals and buttons
       const historyModal = document.getElementById("historyModal");
       const statsModal = document.getElementById("statsModal");
       const feedbackModal = document.getElementById("feedbackModal");
       const closeButtons = document.querySelectorAll(".close");
 
-      // Close modals
-      closeButtons.forEach((btn) => {
-        btn.onclick = function () {
-          this.parentElement.parentElement.style.display = "none";
-        };
+      closeButtons.forEach((btn) =>
+        btn.addEventListener(
+          "click",
+          () => (btn.parentElement.parentElement.style.display = "none"),
+        ),
+      );
+
+      window.addEventListener("click", (event) => {
+        if (event.target.classList.contains("modal"))
+          event.target.style.display = "none";
       });
 
-      window.onclick = function (event) {
-        if (event.target.classList.contains("modal")) {
-          event.target.style.display = "none";
-        }
-      };
-
-      // Clear chat
-      document.getElementById("clearBtn").onclick = function () {
+      document.getElementById("clearBtn").addEventListener("click", () => {
         if (confirm("Clear all messages? This cannot be undone.")) {
           chatMessages.innerHTML =
             '<div class="welcome-message"><p>Chat cleared. Start a new conversation!</p></div>';
         }
-      };
+      });
 
-      // Load history
-      document.getElementById("historyBtn").onclick = function () {
+      document.getElementById("historyBtn").addEventListener("click", () => {
         loadHistory();
         historyModal.style.display = "block";
-      };
+      });
 
-      // Load statistics
-      document.getElementById("statsBtn").onclick = function () {
+      document.getElementById("statsBtn").addEventListener("click", () => {
         loadStatistics();
         statsModal.style.display = "block";
-      };
+      });
 
-      // Main chat function
-      function getUserResponse() {
-        const userMessage = document.getElementById("userMessage").value.trim();
+      // Main chat function using fetch
+      async function getUserResponse() {
+        const userMessageInput = document.getElementById("userMessage");
+        const userMessage = userMessageInput.value.trim();
         if (!userMessage) return;
 
         // Show user message
@@ -172,110 +165,115 @@
           getCurrentTime() +
           "</span></div>";
         chatMessages.appendChild(createElement(userHtml));
-        document.getElementById("userMessage").value = "";
+        userMessageInput.value = "";
 
-        // Show loading state
+        // Loading state
         statusIndicator.textContent = "Processing...";
         statusIndicator.classList.remove("status-ready");
 
-        // Send to server
-        $.ajax({
-          url: "/get_response/",
-          type: "POST",
-          contentType: "application/json",
-          data: JSON.stringify({ userMessage: userMessage }),
-          success: function (response) {
-            if (response.success) {
-              currentMessageId = response.message_id;
-              const botHtml =
-                '<div class="message bot-message"><div class="message-content">' +
-                escapeHtml(response.message) +
-                '</div><div class="message-meta">' +
-                '<span class="confidence">Confidence: ' +
-                Math.round(response.confidence * 100) +
-                "%</span>" +
-                '<button class="btn-feedback" onclick="showFeedback(' +
-                response.message_id +
-                ')">👍</button>' +
-                '</div><span class="timestamp">' +
-                getCurrentTime() +
-                "</span></div>";
-              chatMessages.appendChild(createElement(botHtml));
-            }
-            statusIndicator.textContent = "Ready";
-            statusIndicator.classList.add("status-ready");
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-          },
-          error: function (xhr) {
+        try {
+          const resp = await fetch("/get_response/", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ userMessage: userMessage }),
+          });
+
+          const data = await resp.json();
+          if (resp.ok && data.success) {
+            currentMessageId = data.message_id;
+            const botHtml =
+              '<div class="message bot-message"><div class="message-content">' +
+              escapeHtml(data.message) +
+              '</div><div class="message-meta">' +
+              '<span class="confidence">Confidence: ' +
+              Math.round(data.confidence * 100) +
+              "%</span>" +
+              '<button class="btn-feedback" onclick="showFeedback(' +
+              data.message_id +
+              ')">👍</button>' +
+              '</div><span class="timestamp">' +
+              getCurrentTime() +
+              "</span></div>";
+            chatMessages.appendChild(createElement(botHtml));
+          } else {
+            const errText =
+              data && data.error
+                ? data.error
+                : "Unable to get response. Please try again.";
             const errorMsg =
-              '<div class="message error-message"><div class="message-content">Error: Unable to get response. Please try again.</div></div>';
+              '<div class="message error-message"><div class="message-content">Error: ' +
+              escapeHtml(errText) +
+              "</div></div>";
             chatMessages.appendChild(createElement(errorMsg));
-            statusIndicator.textContent = "Error";
-            statusIndicator.classList.remove("status-ready");
-          },
-        });
+          }
+        } catch (e) {
+          const errorMsg =
+            '<div class="message error-message"><div class="message-content">Error: Unable to get response. Please try again.</div></div>';
+          chatMessages.appendChild(createElement(errorMsg));
+        } finally {
+          statusIndicator.textContent = "Ready";
+          statusIndicator.classList.add("status-ready");
+          chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
       }
 
-      function loadHistory() {
-        $.ajax({
-          url: "/api/history/",
-          type: "GET",
-          success: function (data) {
-            if (data.success) {
-              let html =
-                '<p class="history-info">Total messages: ' +
-                data.message_count +
-                '</p><div class="history-list">';
-              if (data.messages.length === 0) {
-                html += "<p>No messages yet</p>";
-              } else {
-                data.messages.forEach((msg) => {
-                  html +=
-                    '<div class="history-item">' +
-                    "<strong>You:</strong> " +
-                    escapeHtml(msg.user_message.substring(0, 50)) +
-                    "...<br>" +
-                    "<strong>Bot:</strong> " +
-                    escapeHtml(msg.bot_response.substring(0, 50)) +
-                    "...<br>" +
-                    "<small>" +
-                    new Date(msg.timestamp).toLocaleString() +
-                    "</small>" +
-                    "</div>";
-                });
-              }
-              html += "</div>";
-              document.getElementById("historyContent").innerHTML = html;
+      async function loadHistory() {
+        try {
+          const resp = await fetch("/api/history/");
+          const data = await resp.json();
+          if (resp.ok && data.success) {
+            let html =
+              '<p class="history-info">Total messages: ' +
+              data.message_count +
+              '</p><div class="history-list">';
+            if (data.messages.length === 0) html += "<p>No messages yet</p>";
+            else {
+              data.messages.forEach((msg) => {
+                html +=
+                  '<div class="history-item"><strong>You:</strong> ' +
+                  escapeHtml(msg.user_message.substring(0, 50)) +
+                  "...<br><strong>Bot:</strong> " +
+                  escapeHtml(msg.bot_response.substring(0, 50)) +
+                  "...<br><small>" +
+                  new Date(msg.timestamp).toLocaleString() +
+                  "</small></div>";
+              });
             }
-          },
-        });
+            html += "</div>";
+            document.getElementById("historyContent").innerHTML = html;
+          }
+        } catch (e) {
+          document.getElementById("historyContent").innerHTML =
+            "<p>Error loading history</p>";
+        }
       }
 
-      function loadStatistics() {
-        $.ajax({
-          url: "/api/statistics/",
-          type: "GET",
-          success: function (data) {
-            if (data.success) {
-              const html =
-                '<div class="stats-grid">' +
-                '<div class="stat-item"><strong>Total Messages</strong><br>' +
-                data.total_messages +
-                "</div>" +
-                '<div class="stat-item"><strong>Avg Confidence</strong><br>' +
-                Math.round(data.avg_confidence * 100) +
-                "%</div>" +
-                '<div class="stat-item"><strong>Feedback Count</strong><br>' +
-                data.feedback_count +
-                "</div>" +
-                '<div class="stat-item"><strong>Avg Rating</strong><br>' +
-                data.avg_rating.toFixed(1) +
-                "/5 ⭐</div>" +
-                "</div>";
-              document.getElementById("statsContent").innerHTML = html;
-            }
-          },
-        });
+      async function loadStatistics() {
+        try {
+          const resp = await fetch("/api/statistics/");
+          const data = await resp.json();
+          if (resp.ok && data.success) {
+            const html =
+              '<div class="stats-grid">' +
+              '<div class="stat-item"><strong>Total Messages</strong><br>' +
+              data.total_messages +
+              "</div>" +
+              '<div class="stat-item"><strong>Avg Confidence</strong><br>' +
+              Math.round(data.avg_confidence * 100) +
+              "%</div>" +
+              '<div class="stat-item"><strong>Feedback Count</strong><br>' +
+              data.feedback_count +
+              "</div>" +
+              '<div class="stat-item"><strong>Avg Rating</strong><br>' +
+              data.avg_rating.toFixed(1) +
+              "/5 ⭐</div>" +
+              "</div>";
+            document.getElementById("statsContent").innerHTML = html;
+          }
+        } catch (e) {
+          document.getElementById("statsContent").innerHTML =
+            "<p>Error loading statistics</p>";
+        }
       }
 
       function showFeedback(messageId) {
@@ -283,39 +281,46 @@
         feedbackModal.style.display = "block";
       }
 
-      document.getElementById("submitFeedback").onclick = function () {
-        const rating = document.querySelector(
-          'input[name="rating"]:checked',
-        ).value;
-        const comment = document.getElementById("feedbackComment").value;
-
-        $.ajax({
-          url: "/api/feedback/",
-          type: "POST",
-          contentType: "application/json",
-          data: JSON.stringify({
-            message_id: currentMessageId,
-            rating: parseInt(rating),
-            comment: comment,
-          }),
-          success: function (response) {
-            if (response.success) {
+      document
+        .getElementById("submitFeedback")
+        .addEventListener("click", async () => {
+          const rating = document.querySelector(
+            'input[name="rating"]:checked',
+          ).value;
+          const comment = document.getElementById("feedbackComment").value;
+          try {
+            const resp = await fetch("/api/feedback/", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                message_id: currentMessageId,
+                rating: parseInt(rating),
+                comment,
+              }),
+            });
+            const data = await resp.json();
+            if (resp.ok && data.success) {
               alert("Thank you for your feedback!");
               feedbackModal.style.display = "none";
               document.getElementById("feedbackForm").reset();
             }
-          },
+          } catch (e) {
+            alert("Unable to submit feedback.");
+          }
         });
-      };
 
       // Event listeners
-      document.getElementById("sendButton").onclick = getUserResponse;
-      document.getElementById("userMessage").onkeypress = function (e) {
-        if (e.which === 13) {
-          // Enter key
-          getUserResponse();
-        }
-      };
+      document
+        .getElementById("sendButton")
+        .addEventListener("click", getUserResponse);
+      document
+        .getElementById("userMessage")
+        .addEventListener("keydown", function (e) {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            getUserResponse();
+          }
+        });
 
       // Helper functions
       function escapeHtml(text) {
@@ -326,7 +331,7 @@
           '"': "&quot;",
           "'": "&#039;",
         };
-        return text.replace(/[&<>"']/g, (m) => map[m]);
+        return String(text).replace(/[&<>"']/g, (m) => map[m]);
       }
 
       function getCurrentTime() {
@@ -344,9 +349,9 @@
       }
 
       // Focus input on load
-      window.onload = function () {
-        document.getElementById("userMessage").focus();
-      };
+      window.addEventListener("load", () =>
+        document.getElementById("userMessage").focus(),
+      );
     </script>
   </body>
 </html>
