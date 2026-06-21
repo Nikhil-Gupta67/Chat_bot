@@ -1,4 +1,4 @@
-# Django AI Chatbot Application
+# Django AI Chatbot Application-
 
 An advanced Django-based conversational chatbot with a modern, responsive UI, conversation tracking, user feedback system, and comprehensive analytics.
 
