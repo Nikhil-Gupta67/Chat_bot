@@ -4,7 +4,7 @@ An advanced Django-based conversational chatbot with a modern, responsive UI, co
 
 ## 🚀 Features-
 
-### Core Features
+### Core Features-
 
 - **Advanced NLP Pattern Matching** - Intelligent keyword-based response generation with confidence scoring
 - **Session Management** - Persistent conversation tracking across sessions using unique session IDs
