@@ -2,7 +2,7 @@
 
 An advanced Django-based conversational chatbot with a modern, responsive UI, conversation tracking, user feedback system, and comprehensive analytics.
 
-## 🚀 Features
+## 🚀 Features-
 
 ### Core Features
 
