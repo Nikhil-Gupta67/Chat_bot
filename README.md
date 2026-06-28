@@ -12,7 +12,7 @@ An advanced Django-based conversational chatbot with a modern, responsive UI, co
 - **JSON API** - RESTful API endpoints for programmatic access
 - **User Feedback System** - Rate and comment on bot responses for continuous improvement
 
-### User Interface
+### User Interface-
 
 - **Modern Responsive Design** - Beautiful gradient UI that works on desktop and mobile
 - **Real-time Chat** - Live message updates with smooth animations
