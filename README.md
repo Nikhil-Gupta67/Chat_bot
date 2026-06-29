@@ -28,7 +28,7 @@ An advanced Django-based conversational chatbot with a modern, responsive UI, co
 - **Management Commands** - CLI tools for data management
 - **Extensible Bot Logic** - Easy to add new response patterns and behaviors
 
-### Data Models
+### Data Models-
 
 1. **Conversation** - Session-based conversation containers
 2. **Message** - Individual messages with confidence scores
