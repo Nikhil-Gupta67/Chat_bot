@@ -20,7 +20,7 @@ An advanced Django-based conversational chatbot with a modern, responsive UI, co
 - **Chat Statistics** - Real-time analytics showing message count, confidence scores, and ratings
 - **Feedback Modal** - Easy 5-star rating system with optional comments
 
-### Backend Features
+### Backend Features-
 
 - **Comprehensive Logging** - All activities logged to console and rotating file handlers
 - **Admin Interface** - Full Django admin for managing conversations, messages, and feedback
