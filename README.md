@@ -67,7 +67,7 @@ chatbot/
 │       └── index.html       # Chat UI template
 ```
 
-## 🛠️ Setup Instructions
+## 🛠️ Setup Instructions-
 
 ### Prerequisites
 
