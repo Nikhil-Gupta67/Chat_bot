@@ -35,7 +35,7 @@ An advanced Django-based conversational chatbot with a modern, responsive UI, co
 3. **ChatFeedback** - User ratings and comments on responses
 4. **BotResponse** - Predefined response patterns (for future use with admin interface)
 
-## 📁 Project Structure
+## 📁 Project Structure-
 
 ```
 chatbot/
