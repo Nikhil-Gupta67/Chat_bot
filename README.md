@@ -75,7 +75,7 @@ chatbot/
 - pip (Python package manager)
 - Virtual environment recommended
 
-### Installation Steps
+### Installation Steps-
 
 1. **Clone/Navigate to project**
 
